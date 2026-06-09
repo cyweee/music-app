@@ -1,21 +1,19 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import Album from "./pages/Album";
-import Profile from "./pages/Profile";
-import Auth from "./pages/Auth";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Album from './pages/Album';
+import Profile from './pages/Profile';
+import Auth from './pages/Auth';
 
-function App() {
+export default function App() {
     return (
-        <BrowserRouter>
-            {/* Обертка на весь экран с темным фоном */}
-            <div className="min-h-screen bg-gray-950 font-sans text-white">
-
-                {/* Наше новое меню */}
+        // Оборачиваем ВСЁ приложение в Router, чтобы работали ссылки и переходы
+        <Router>
+            <div className="w-full min-h-screen bg-gray-950 text-white flex flex-col">
                 <Navbar />
 
-                {/* Контейнер для страниц */}
-                <main className="container mx-auto py-8 px-4">
+                {/* Главный блок для страниц, тоже на всю ширину */}
+                <main className="w-full flex-grow">
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/album/:id" element={<Album />} />
@@ -23,10 +21,7 @@ function App() {
                         <Route path="/auth" element={<Auth />} />
                     </Routes>
                 </main>
-
             </div>
-        </BrowserRouter>
+        </Router>
     );
 }
-
-export default App;

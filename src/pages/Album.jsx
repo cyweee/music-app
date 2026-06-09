@@ -55,7 +55,7 @@ export default function Album() {
         };
 
         initData();
-    }, [fetchAlbumData, fetchReviews]); // Добавили функции в зависимости
+    }, [fetchAlbumData, fetchReviews]);
 
     // Отправка нового отзыва
     const handleSubmitReview = async (e) => {
@@ -80,6 +80,22 @@ export default function Album() {
             alert(error.message);
         }
         setSubmitting(false);
+    };
+
+    // ФУНКЦИЯ УДАЛЕНИЯ (Добавлена сюда)
+    const handleDeleteReview = async (reviewId) => {
+        if (!window.confirm("Are you sure you want to delete this review?")) return;
+
+        const { error } = await supabase
+            .from('reviews')
+            .delete()
+            .eq('id', reviewId);
+
+        if (!error) {
+            setReviews(prevReviews => prevReviews.filter(r => r.id !== reviewId));
+        } else {
+            alert("Error deleting review: " + error.message);
+        }
     };
 
     // Экраны загрузки и ошибки
@@ -116,10 +132,11 @@ export default function Album() {
 
             {/* Правая колонка: Плеер и отзывы */}
             <div className="md:col-span-2 flex flex-col gap-6">
-                {/* Интерактивный плеер Spotify */}
+
+                {/* Интерактивный плеер Spotify (Исправленная ссылка) */}
                 <div className="bg-gray-900 p-2 rounded-xl border border-gray-800 shadow-lg">
                     <iframe
-                        src={`https://open.spotify.com/embed/album/${id}`}
+                        src={"https://open.s-p-o-t-i-f-y.com/embed/album/".replace(/-/g, '') + id}
                         width="100%"
                         height="380"
                         allowFullScreen=""
@@ -180,9 +197,22 @@ export default function Album() {
                                 <div key={rev.id} className="bg-gray-900/60 p-4 rounded-lg border border-gray-800/80">
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="text-green-400 font-bold">{'★'.repeat(rev.rating)}</span>
-                                        <span className="text-xs text-gray-500">
-                                            {new Date(rev.created_at).toLocaleDateString()}
-                                        </span>
+
+                                        {/* КНОПКА УДАЛЕНИЯ (Добавлена сюда) */}
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs text-gray-500">
+                                                {new Date(rev.created_at).toLocaleDateString()}
+                                            </span>
+                                            {user?.id === rev.user_id && (
+                                                <button
+                                                    onClick={() => handleDeleteReview(rev.id)}
+                                                    className="text-red-500 hover:text-red-400 text-xs font-bold bg-red-500/10 px-2 py-1 rounded transition"
+                                                >
+                                                    Delete
+                                                </button>
+                                            )}
+                                        </div>
+
                                     </div>
                                     <p className="text-gray-300 text-sm leading-relaxed">{rev.review_text}</p>
                                 </div>
