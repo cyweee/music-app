@@ -42,7 +42,7 @@ export default function Album() {
         }
     }, [id]);
 
-    // Теперь useEffect работает по всем строгим правилам React
+    // Инициализация данных при загрузке страницы
     useEffect(() => {
         const initData = async () => {
             // Проверяем авторизацию
@@ -57,10 +57,26 @@ export default function Album() {
         initData();
     }, [fetchAlbumData, fetchReviews]);
 
-    // Отправка нового отзыва
+    // ЗАЩИЩЕННАЯ ОТПРАВКА ОТЗЫВА
     const handleSubmitReview = async (e) => {
         e.preventDefault();
         if (!user) return;
+
+        // Очищаем текст от случайных пробелов по краям
+        const cleanText = reviewText.trim();
+
+        // ЗАЩИТА 1: Проверка на пустую строку
+        if (cleanText.length === 0) {
+            alert("Review text cannot be empty!");
+            return;
+        }
+
+        // ЗАЩИТА 2: Ограничение на слишком длинный спам (макс. 1000 символов)
+        if (cleanText.length > 1000) {
+            alert("Review is too long! Maximum 1000 characters.");
+            return;
+        }
+
         setSubmitting(true);
 
         const { error } = await supabase.from('reviews').insert([
@@ -68,7 +84,9 @@ export default function Album() {
                 album_id: id,
                 user_id: user.id,
                 rating: rating,
-                review_text: reviewText,
+                review_text: cleanText, // Отправляем очищенный от пробелов текст
+                // Привязываем никнейм автора к записи отзыва
+                username: user.user_metadata?.username || user.email.split('@')[0],
             },
         ]);
 
@@ -82,7 +100,7 @@ export default function Album() {
         setSubmitting(false);
     };
 
-    // ФУНКЦИЯ УДАЛЕНИЯ (Добавлена сюда)
+    // ФУНКЦИЯ УДАЛЕНИЯ
     const handleDeleteReview = async (reviewId) => {
         if (!window.confirm("Are you sure you want to delete this review?")) return;
 
@@ -133,7 +151,7 @@ export default function Album() {
             {/* Правая колонка: Плеер и отзывы */}
             <div className="md:col-span-2 flex flex-col gap-6">
 
-                {/* Интерактивный плеер Spotify (Исправленная ссылка) */}
+                {/* Интерактивный плеер Spotify */}
                 <div className="bg-gray-900 p-2 rounded-xl border border-gray-800 shadow-lg">
                     <iframe
                         src={"https://open.s-p-o-t-i-f-y.com/embed/album/".replace(/-/g, '') + id}
@@ -196,9 +214,15 @@ export default function Album() {
                             {reviews.map((rev) => (
                                 <div key={rev.id} className="bg-gray-900/60 p-4 rounded-lg border border-gray-800/80">
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="text-green-400 font-bold">{'★'.repeat(rev.rating)}</span>
 
-                                        {/* КНОПКА УДАЛЕНИЯ (Добавлена сюда) */}
+                                        {/* Исправленный вывод: аккуратный никнейм и звёзды в ряд */}
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-green-400 font-bold text-sm">{'★'.repeat(rev.rating)}</span>
+                                            <span className="text-xs text-gray-400 font-medium tracking-wide">
+                                                by @{rev.username || 'user'}
+                                            </span>
+                                        </div>
+
                                         <div className="flex items-center gap-3">
                                             <span className="text-xs text-gray-500">
                                                 {new Date(rev.created_at).toLocaleDateString()}
@@ -214,7 +238,7 @@ export default function Album() {
                                         </div>
 
                                     </div>
-                                    <p className="text-gray-300 text-sm leading-relaxed">{rev.review_text}</p>
+                                    <p className="text-gray-300 text-sm leading-relaxed text-left">{rev.review_text}</p>
                                 </div>
                             ))}
                         </div>
