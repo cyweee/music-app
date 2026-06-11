@@ -9,6 +9,7 @@ export default function Auth() {
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [registrationSuccess, setRegistrationSuccess] = useState(false); // Новое состояние
 
     const navigate = useNavigate();
 
@@ -22,7 +23,7 @@ export default function Auth() {
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) {
                     setErrorMsg(error.message);
-                    return; // Останавливаем выполнение, дальше не идем
+                    return;
                 }
                 navigate('/');
             } else {
@@ -35,12 +36,12 @@ export default function Auth() {
                 });
                 if (error) {
                     setErrorMsg(error.message);
-                    return; // Останавливаем выполнение
+                    return;
                 }
-                navigate('/');
+                // ВМЕСТО РЕДИРЕКТА ПРИ РЕГИСТРАЦИИ:
+                setRegistrationSuccess(true);
             }
         } catch (error) {
-            // Сюда теперь будут попадать только настоящие непредвиденные сбои (например, пропал интернет)
             setErrorMsg(error.message);
         } finally {
             setLoading(false);
@@ -48,62 +49,77 @@ export default function Auth() {
     };
 
     return (
-        <div className="flex justify-center items-center h-[75vh]">
-            <div className="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-700">
-                <h1 className="text-3xl font-black text-white text-center mb-6">
-                    {isLogin ? 'Sign In' : 'Create Account'}
-                </h1>
+        <div className="flex justify-center items-center h-[75vh] px-4">
+            <div className="bg-[#3b3c3e]/20 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-[#454b35]/40 backdrop-blur-md">
 
-                <form onSubmit={handleAuth} className="flex flex-col gap-4">
-                    {!isLogin && (
-                        <input
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="p-3 rounded bg-gray-900 text-white border border-gray-600 focus:outline-none focus:border-green-400 transition"
-                            required={!isLogin}
-                        />
-                    )}
-                    <input
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="p-3 rounded bg-gray-900 text-white border border-gray-600 focus:outline-none focus:border-green-400 transition"
-                        required
-                    />
-                    <input
-                        type="password"
-                        placeholder="Password (min 6 characters)"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="p-3 rounded bg-gray-900 text-white border border-gray-600 focus:outline-none focus:border-green-400 transition"
-                        required
-                    />
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="mt-2 bg-green-500 hover:bg-green-400 text-gray-900 font-bold py-3 rounded transition duration-300"
-                    >
-                        {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')}
-                    </button>
-                </form>
+                {registrationSuccess ? (
+                    <div className="text-center py-6">
+                        <h2 className="text-2xl font-black text-[#a3a89f] mb-4 uppercase tracking-widest">Hello</h2>
+                        <p className="text-[#7b7e64] font-bold tracking-widest uppercase text-sm">
+                            Registration is almost complete!
+                        </p>
+                        <p className="text-red-400/80 text-xs mt-3 italic">
+                            Check your email and confirm your email address to activate your account.
+                        </p>
+                    </div>
+                ) : (
+                    <>
+                        <h1 className="text-3xl font-black text-[#a3a89f] text-center mb-6 tracking-tighter">
+                            {isLogin ? 'Sign In' : 'Create Account'}
+                        </h1>
 
-                {errorMsg && <p className="mt-4 text-center text-sm text-red-400 bg-red-900/30 p-2 rounded">{errorMsg}</p>}
+                        <form onSubmit={handleAuth} className="flex flex-col gap-4">
+                            {!isLogin && (
+                                <input
+                                    type="text"
+                                    placeholder="Username"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="p-3 rounded-lg bg-[#1d2216] text-[#a3a89f] border border-[#454b35]/60 focus:outline-none focus:border-[#7b7e64] transition"
+                                    required={!isLogin}
+                                />
+                            )}
+                            <input
+                                type="email"
+                                placeholder="Email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="p-3 rounded-lg bg-[#1d2216] text-[#a3a89f] border border-[#454b35]/60 focus:outline-none focus:border-[#7b7e64] transition"
+                                required
+                            />
+                            <input
+                                type="password"
+                                placeholder="Password (min 6 characters)"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="p-3 rounded-lg bg-[#1d2216] text-[#a3a89f] border border-[#454b35]/60 focus:outline-none focus:border-[#7b7e64] transition"
+                                required
+                            />
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="mt-2 bg-[#454b35] hover:bg-[#7b7e64] text-[#1d2216] font-black py-3 rounded-lg transition duration-300 uppercase tracking-widest text-sm"
+                            >
+                                {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')}
+                            </button>
+                        </form>
 
-                <div className="mt-6 text-center text-gray-400 text-sm">
-                    {isLogin ? "Don't have an account? " : "Already have an account? "}
-                    <button
-                        onClick={() => {
-                            setIsLogin(!isLogin);
-                            setErrorMsg('');
-                        }}
-                        className="text-white hover:text-green-400 font-bold transition"
-                    >
-                        {isLogin ? 'Sign Up' : 'Sign In'}
-                    </button>
-                </div>
+                        {errorMsg && <p className="mt-4 text-center text-xs text-red-400 bg-red-900/10 p-2 rounded border border-red-900/20">{errorMsg}</p>}
+
+                        <div className="mt-6 text-center text-[#7b7e64] text-xs font-bold tracking-widest uppercase">
+                            {isLogin ? "Don't have an account? " : "Already have an account? "}
+                            <button
+                                onClick={() => {
+                                    setIsLogin(!isLogin);
+                                    setErrorMsg('');
+                                }}
+                                className="text-[#a3a89f] hover:text-white font-black transition"
+                            >
+                                {isLogin ? 'Sign Up' : 'Sign In'}
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
